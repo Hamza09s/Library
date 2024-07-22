@@ -1,0 +1,57 @@
+<!-- home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+{% if user.is_authenticated %}
+  <h1>Book List</h1>
+   <form method="get" action="{% url 'home' %}">
+    <input type="text" name="author_name" placeholder="Enter author name" value="{{ request.GET.author_name }}">
+    <button type="submit">Search</button>
+  </form>
+  <ul>
+    {% for book in books %}
+      <li>
+        <h2>{{ book.title }}</h2>
+        <p>Author: {{ book.author.full_name }}</p>
+        <p>{{ book.description }}</p>
+        <p id="like-count-{{ book.id }}">{{ book.like.count }} likes</p>
+        {% if user.is_authenticated %}
+          <button class="btn btn-success like-button" data-id="{{ book.id }}">
+            {% if user in book.like.all %}
+              Unlike
+            {% else %}
+              Like
+            {% endif %}
+          </button>
+        {% else %}
+          <p><a href="{% url 'login' %}">Log in</a> to like this book.</p>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+ {% endif %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('.like-button').click(function() {
+        var button = $(this);
+        var bookId = button.data('id');
+        $.ajax({
+          url: '{% url "like_book" 0 %}'.replace('0', bookId),
+          type: 'POST',
+          data: {
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+          },
+          success: function(response) {
+            if (response.liked) {
+              button.removeClass('btn-success').addClass('btn-danger').text('Unlike');
+            } else {
+              button.removeClass('btn-danger').addClass('btn-success').text('Like');
+            }
+            $('#like-count-' + bookId).text(response.count + ' likes');
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}

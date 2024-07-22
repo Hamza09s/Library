@@ -1,0 +1,7 @@
+.venv
+.mypy_cache
+db.sqlite3
+mail.txt
+__pycache__
+.vscode
+/staticfiles
